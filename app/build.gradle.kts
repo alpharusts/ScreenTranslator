@@ -1,16 +1,25 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
+// Ключ подписи для Google Play лежит ВНЕ репозитория: keystore.properties + upload-key.jks
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
 android {
     namespace = "ru.screentranslator"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "ru.screentranslator"
+        // ID приложения в Google Play — после первой публикации менять нельзя
+        applicationId = "io.github.alpharusts.screentranslator"
         minSdk = 26          // Android 8.0+
-        targetSdk = 34
+        targetSdk = 36       // требование Google Play с 31.08.2026
         versionCode = 1
         versionName = "1.0"
         // Только процессоры телефонов (без x86 для эмуляторов) — APK меньше
@@ -19,9 +28,21 @@ android {
         }
     }
 
+    signingConfigs {
+        if (keystoreProps.containsKey("storeFile")) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
@@ -35,6 +56,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
