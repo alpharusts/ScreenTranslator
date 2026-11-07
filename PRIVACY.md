@@ -2,7 +2,7 @@
 
 Дата вступления в силу: 7 ноября 2026 г.
 
-Приложение «Переводчик экрана» (`io.github.alpharusts.screentranslator`), разработчик — alpharusts.
+Приложение «Переводчик экрана» (`io.github.alpharusts.screentranslator`), разработчик — MiniSul (Mini Solution).
 Вопросы и обращения: https://github.com/alpharusts/ScreenTranslator/issues
 
 ## Коротко
