@@ -3,6 +3,7 @@ package ru.screentranslator
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.Typeface
 import android.media.projection.MediaProjectionConfig
 import android.media.projection.MediaProjectionManager
@@ -18,6 +19,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -58,6 +62,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         engine = TranslationEngine()
+        // Android 15+ рисует приложение под системными панелями — делаем отступы сами
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        @Suppress("DEPRECATION")
+        window.statusBarColor = Color.TRANSPARENT
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
         setContentView(buildUi())
         if (Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -111,7 +120,15 @@ class MainActivity : ComponentActivity() {
         statusText = label("")
         root.addView(statusText)
         root.addView(label(HOWTO, 14f))
-        return ScrollView(this).apply { addView(root) }
+        val scroll = ScrollView(this).apply { addView(root) }
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        return scroll
     }
 
     private fun openOverlaySettings() {
