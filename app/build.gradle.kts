@@ -22,9 +22,12 @@ android {
         targetSdk = 36       // требование Google Play с 31.08.2026
         versionCode = 1
         versionName = "1.0"
-        // Только процессоры телефонов (без x86 для эмуляторов) — APK меньше
+        // Только процессоры телефонов (без x86 для эмуляторов).
+        // -PabiOnly=arm64-v8a собирает APK под один тип процессора — файл в 2 раза меньше.
+        val abiOnly = project.findProperty("abiOnly") as String?
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            if (abiOnly != null) abiFilters += abiOnly
+            else abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
     }
 
@@ -44,6 +47,12 @@ android {
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release")
         }
+    }
+
+    // -Psideload: сжатые библиотеки для APK с сайта и itch.io (меньше скачивать).
+    // Для Google Play не используется — там библиотеки остаются несжатыми.
+    if (project.hasProperty("sideload")) {
+        packaging { jniLibs { useLegacyPackaging = true } }
     }
 
     compileOptions {
